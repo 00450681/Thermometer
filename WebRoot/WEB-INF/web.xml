@@ -12,10 +12,14 @@
     <servlet-class>com.thermometer.servlet.WXServlet</servlet-class>
   </servlet>
 
-  <servlet-mapping>
+  <!-- <servlet-mapping>
     <servlet-name>WXServlet</servlet-name>
     <url-pattern>/servlet/WXServlet</url-pattern>
-  </servlet-mapping>	
+  </servlet-mapping> -->	
+  <servlet-mapping>
+    <servlet-name>WXServlet</servlet-name>
+    <url-pattern>/thermometer</url-pattern>
+  </servlet-mapping>
   <welcome-file-list>
     <welcome-file>index.jsp</welcome-file>
   </welcome-file-list>

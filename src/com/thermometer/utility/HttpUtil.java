@@ -50,12 +50,6 @@ public class HttpUtil {
 
 	
 	
-	
-	
-	
-	
-	
-	
 	public static String sendHttpsPOST(String url, String data) {
 		String result = null;
 
@@ -168,4 +162,5 @@ public class HttpUtil {
 
 		return result;
 	}
+	
 }
