@@ -1,5 +1,10 @@
 package com.thermometer.servlet;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -129,9 +134,12 @@ public class WXServlet extends HttpServlet {
             String toUserName = rootElt.elementText("ToUserName");
             String fromUserName = rootElt.elementText("FromUserName");
             String MsgType = rootElt.elementText("MsgType");
+            String Event = rootElt.elementText("Event");
             //得到所有的有用数据
             System.out.println(content+ ":" + toUserName + ":" + fromUserName +
-            		" MsgType is " + MsgType);
+            		" MsgType is " + MsgType + " Event is " + Event);
+            
+            
             if (!StringUtil.isBlank(content) && "device_event".equals(MsgType)) {
             	String event = rootElt.elementText("Event");
             	if ("bind".equals(event)) {
@@ -186,12 +194,24 @@ public class WXServlet extends HttpServlet {
             		bindingInfo.setOpenID(openID);
             		BindingInfo bindingInfoDB = ThermometerDB.findBindingInfo(bindingInfo);
             		if (bindingInfoDB.getDisplayOnWeChat().equals("1")) {
-	            		ToDeviceMsg msg = new ToDeviceMsg();
+	            		/*ToDeviceMsg msg = new ToDeviceMsg();
 	            		msg.setContent(temp / 10.0 + "");
 	            		msg.setDeviceId(deviceID);
 	            		msg.setDeviceType(deviceType);
 	            		msg.setOpenId(openID);
-	            		msg.sendMessage();
+	            		msg.sendMessage();*/
+            			String responseStr = "<xml>";
+                        responseStr += "<ToUserName><![CDATA[" + fromUserName
+                                + "]]></ToUserName>";
+                        responseStr += "<FromUserName><![CDATA[" + toUserName
+                                + "]]></FromUserName>";
+                        responseStr += "<CreateTime>" + System.currentTimeMillis()
+                                + "</CreateTime>";
+                        responseStr += "<MsgType><![CDATA[text]]></MsgType>";
+                        responseStr += "<Content>" + temp /10.0 + "℃" + "</Content>";
+                        responseStr += "<FuncFlag>0</FuncFlag>";
+                        responseStr += "</xml>";
+                        response.getWriter().write(responseStr);
             		}
             		break;
             	case DEVICE_MSG_COMMAND_RESULT:
@@ -234,9 +254,32 @@ public class WXServlet extends HttpServlet {
                         responseStr += "</xml>";
                         response.getWriter().write(responseStr);
             		}
-            	}/* else if ("VIEW".equals(event)) {
+            	} else if ("VIEW".equals(event)) {
+            		
+            		/*String responseStr = "<xml>";
+                    responseStr += "<ToUserName><![CDATA[" + fromUserName
+                            + "]]></ToUserName>";
+                    responseStr += "<FromUserName><![CDATA[" + toUserName
+                            + "]]></FromUserName>";
+                    responseStr += "<CreateTime>" + System.currentTimeMillis()
+                            + "</CreateTime>";
+                    responseStr += "<MsgType><![CDATA[text]]></MsgType>";
+                    responseStr += "<Content>VIEW GOT</Content>";
+                    responseStr += "<FuncFlag>0</FuncFlag>";
+                    responseStr += "</xml>";
+                    response.getWriter().write(responseStr);
+            		
             		response.sendRedirect(eventKey);
-            	}*/
+            		
+            		File file = new File("log.txt");
+            		FileWriter writter = new FileWriter(file);
+            		//FileOutputStream fos = new FileOutputStream("Log.txt");
+            		String msg = "Got View Post";
+            		System.out.println(msg);
+            		writter.write(msg.toCharArray());
+            		writter.flush();
+            		writter.flush();*/
+            	}
             }
             //文本消息
             else if (!StringUtil.isBlank(content) && "text".equals(/*content*/MsgType)) {
@@ -248,7 +291,7 @@ public class WXServlet extends HttpServlet {
                 responseStr += "<CreateTime>" + System.currentTimeMillis()
                         + "</CreateTime>";
                 responseStr += "<MsgType><![CDATA[text]]></MsgType>";
-                responseStr += "<Content>text type</Content>";
+                responseStr += "<Content>text type℃</Content>";
                 responseStr += "<FuncFlag>0</FuncFlag>";
                 responseStr += "</xml>";
                 response.getWriter().write(responseStr);

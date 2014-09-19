@@ -11,6 +11,27 @@
     <servlet-name>WXServlet</servlet-name>
     <servlet-class>com.thermometer.servlet.WXServlet</servlet-class>
   </servlet>
+  <servlet>
+    <description>This is the description of my J2EE component</description>
+    <display-name>This is the display name of my J2EE component</display-name>
+    <servlet-name>SetIntervalServlet</servlet-name>
+    <servlet-class>com.thermometer.servlet.SetIntervalServlet</servlet-class>
+  </servlet>
+  <servlet>
+    <description>This is the description of my J2EE component</description>
+    <display-name>This is the display name of my J2EE component</display-name>
+    <servlet-name>Oauth2IntervalServlet</servlet-name>
+    <servlet-class>com.thermometer.servlet.Oauth2IntervalServlet</servlet-class>
+  </servlet>
+  <servlet>
+    <description>This is the description of my J2EE component</description>
+    <display-name>This is the display name of my J2EE component</display-name>
+    <servlet-name>Oauth2HistoryServlet</servlet-name>
+    <servlet-class>com.thermometer.servlet.Oauth2HistoryServlet</servlet-class>
+  </servlet>
+
+
+
 
   <!-- <servlet-mapping>
     <servlet-name>WXServlet</servlet-name>
@@ -19,6 +40,18 @@
   <servlet-mapping>
     <servlet-name>WXServlet</servlet-name>
     <url-pattern>/thermometer</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>SetIntervalServlet</servlet-name>
+    <url-pattern>/servlet/SetIntervalServlet</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>Oauth2IntervalServlet</servlet-name>
+    <url-pattern>/thermometer/Oauth2IntervalServlet</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>Oauth2HistoryServlet</servlet-name>
+    <url-pattern>/thermometer/Oauth2HistoryServlet</url-pattern>
   </servlet-mapping>
   <welcome-file-list>
     <welcome-file>index.jsp</welcome-file>

@@ -23,9 +23,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
   </head>
   
   <body>
-    <form method="post" action="SetInterval.do">
+    <form method="post" action="../Thermometer/thermometer/Oauth2IntervalServlet">
     	<input name="interval" type="text">
-    	<input name="interval" type="submit">
+    	<input name="openid" type="hidden" value=<%= request.getAttribute("openid")%> >
+    	<input  type="submit">
     </form>
   </body>
 </html>

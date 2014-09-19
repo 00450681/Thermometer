@@ -165,7 +165,7 @@ public class ThermometerDB {
 		return false;
 	}
 	
-	public static ArrayList<Device> findDevices(Device device) {
+	public static Device/*ArrayList<Device>*/ findDevices(Device device) {
 		Statement statement = connect();
 		Connection conn = null;
 		if (statement == null) {
@@ -185,16 +185,18 @@ public class ThermometerDB {
 				sql += " ;";
 				ResultSet rs = statement.executeQuery(sql);
 				/*ResultSetMetaData rsmd = rs.getMetaData();*/
-				ArrayList<Device> devices = new ArrayList<Device>();
+				//ArrayList<Device> devices = new ArrayList<Device>();
 				while (rs.next()) {
                     Device temp = new Device();
                     temp.setDeviceID(rs.getString(Device.DEVICE_ID));
                     temp.setDeviceType(rs.getString(Device.DEVICE_TYPE));
                     temp.setDeviceMeasureInterval(Integer.parseInt(rs.getString
                     		(Device.DEVICE_MEASURE_INTERVAL)));
-                    devices.add(temp);
+                    //devices.add(temp);
+                    return temp;
                 }
-				return devices;
+				//return devices;
+				return null;
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
