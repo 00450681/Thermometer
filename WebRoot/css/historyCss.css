@@ -1,0 +1,66 @@
+TEXTAREA {
+	COLOR: #000000;
+	BACKGROUND-COLOR: #f7f7ff;
+	border: 1px solid #000000;
+}
+TD {
+	FONT-SIZE: 12px;
+}
+A:link {
+	COLOR: #000000; TEXT-DECORATION: none;
+}
+A:visited {
+	COLOR: #000000; TEXT-DECORATION: none;
+}
+A:active {
+	COLOR: blue; TEXT-DECORATION: none;
+}
+A:hover {
+	COLOR: red; TEXT-DECORATION: underline;
+}
+.more1 {
+	color: #FF0000;
+}
+.c1 {
+	color: #0163D1;
+}
+.ip1 {
+	color: #AD1963;
+}
+.tile1 {
+	font-size: 13px;
+	font-weight: bold;
+	color: #333333;
+}
+.c1count {
+	color: #0163D1;
+	font-weight: bold;
+}
+.ip1count {
+	color: #AD1963;
+	font-weight: bold;
+}
+.White {
+	color: #FFFFFF;
+}
+.divcenter {
+	position:absolute;
+	visibility: hidden;
+	left:expression(document.body.offsetWidth/2-100); 
+	top:expression(document.body.offsetHeight/2-150);
+}
+.font12 {
+	FONT-SIZE: 12px; LINE-HEIGHT: 150%;
+}
+.box {
+	BORDER-COLLAPSE: collapse;
+}
+.red {
+	color: #FF0000;
+}
+.green {
+	color: #009900;
+}
+.font9 {
+	FONT-SIZE: 12px;
+}

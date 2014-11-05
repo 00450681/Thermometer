@@ -30,4 +30,21 @@ public class StringUtil {
 		}
 		return bit0;
 	}
+	static public String bytesToHexStr(byte []bytes) {
+		StringBuilder sb = new StringBuilder();
+		for (byte b : bytes) {
+			if ((b & 0xff) <= 0x0f) {
+				sb.append("0");
+			}
+			sb.append(Integer.toHexString(b & 0xff) + " ");
+		}
+		return sb.toString();
+	}
+	static public byte []int2LittleEndianBytes(int integer, int size) {
+		byte []ret = new byte[size];
+		for (int i = 0; i < size; i++) {
+			ret[i] = (byte) ((integer >> (8 * i)) & 0xff);
+		}
+		return ret;
+	}
 }

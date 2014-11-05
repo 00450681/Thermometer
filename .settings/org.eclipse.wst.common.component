@@ -3,6 +3,7 @@
     <wb-module deploy-name="Thermometer">
         <wb-resource deploy-path="/" source-path="/WebRoot"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/WebRoot/META-INF/js"/>
         <property name="context-root" value="/Thermometer"/>
         <property name="java-output-path" value="/Thermometer/WebRoot/WEB-INF/classes"/>
     </wb-module>

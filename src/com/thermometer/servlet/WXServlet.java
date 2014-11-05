@@ -1,15 +1,8 @@
 package com.thermometer.servlet;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 
 import javax.servlet.ServletException;
@@ -21,18 +14,23 @@ import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
+
 import com.thermometer.db.ThermometerDB;
 import com.thermometer.db.model.BindingInfo;
 import com.thermometer.db.model.Device;
 import com.thermometer.db.model.Temperature;
-import com.thermometer.message.ToDeviceMsg;
+import com.thermometer.message.ToWeChatMsg;
+import com.thermometer.utility.HttpUtil;
+import com.thermometer.utility.JavaLog;
 import com.thermometer.utility.StringUtil;
 
 public class WXServlet extends HttpServlet {
 
-	private final int DEVICE_MSG_COMMAND_TEMPERATURE = 0;
+	private final int DEVICE_MSG_COMMAND_TEMPERATURE = 0x01;
 	private final int DEVICE_MSG_COMMAND_RESULT = 1;
-	public static final String ACCESS_TOKEN = 
+	public static String ACCESS_TOKEN = 
 			"llntgPT5f55kxl1RAUMDXtVvxDiatg98vbPxsFnNe6IDqrsVTJSMauk65H-FFnohK8XcusPrYd5EACemHUASWw";
 	private HashMap<String, Integer> shouldDisplayOnWeChatMap = new HashMap<String, Integer>();
 	/**
@@ -106,6 +104,7 @@ public class WXServlet extends HttpServlet {
 		out.println("</HTML>");
 		out.flush();
 		out.close();*/
+		
 		System.out.println("----------post---------------");
         try {
             InputStream is = request.getInputStream();
@@ -136,41 +135,62 @@ public class WXServlet extends HttpServlet {
             String MsgType = rootElt.elementText("MsgType");
             String Event = rootElt.elementText("Event");
             //得到所有的有用数据
-            System.out.println(content+ ":" + toUserName + ":" + fromUserName +
-            		" MsgType is " + MsgType + " Event is " + Event);
             
+            JavaLog.log4j.info("Content : " + content + " toUserName : " + 
+            toUserName + " fromUserName : " + fromUserName + " MsgType is " + 
+            		MsgType + " Event is " + Event);
             
-            if (!StringUtil.isBlank(content) && "device_event".equals(MsgType)) {
+            if (/*!StringUtil.isBlank(content) && */"device_event".equals(MsgType)) {
+            	JavaLog.log4j.info("device_event");
             	String event = rootElt.elementText("Event");
             	if ("bind".equals(event)) {
+            		JavaLog.log4j.info("bind_event");
             		// 插入绑定信息
             		String deviceID = rootElt.elementText("DeviceID");
             		String openID = rootElt.elementText("OpenID");
+            		JavaLog.log4j.info("Device ID : " + deviceID + " OpenID : " + openID);
             		BindingInfo bindingInfo = new BindingInfo();
             		bindingInfo.setDeviceID(deviceID);
             		bindingInfo.setOpenID(openID);
             		bindingInfo.setDisplayOnWeChat("1");
-            		ThermometerDB.insertBindingInfo(bindingInfo);
+            		JavaLog.log4j.info("inserting binding info : " + ThermometerDB.insertBindingInfo(bindingInfo));
             		
-            		
+            		String deviceType = rootElt.elementText("DeviceType");
+            		Device device = new Device();
+            		device.setDeviceID(deviceID);
+            		device.setDeviceType(deviceType);
+            		device.setDeviceMeasureInterval(3);
+            		JavaLog.log4j.info("inserting device : " + ThermometerDB.insertDevice(device));
             	}else if ("unbind".equals(event)) {
+            		JavaLog.log4j.info("unbind_event");
             		// 删除绑定信息
             		String deviceID = rootElt.elementText("DeviceID");
             		String openID = rootElt.elementText("OpenID");
+            		JavaLog.log4j.info("Device ID : " + deviceID + " OpenID : " + openID);
             		BindingInfo bindingInfo = new BindingInfo();
             		bindingInfo.setDeviceID(deviceID);
             		bindingInfo.setOpenID(openID);
-            		ThermometerDB.deleteBindingInfo(bindingInfo);
+            		JavaLog.log4j.info("deleting binding info : " + ThermometerDB.deleteBindingInfo(bindingInfo));
+            		
+            		String deviceType = rootElt.elementText("DeviceType");
+            		Device device = new Device();
+            		device.setDeviceID(deviceID);
+            		JavaLog.log4j.info("deleting device : " + ThermometerDB.deleteDevice(device));
             	}
 
             } else if (!StringUtil.isBlank(content) && "device_text".equals(MsgType)) {
+            	JavaLog.log4j.info("device_text");
             	String openID = rootElt.elementText("OpenID");
             	String deviceID = rootElt.elementText("DeviceID");
             	String deviceType = rootElt.elementText("DeviceType");
-            	byte []contentBytes = StringUtil.strToByteArray(content);
-            	switch (contentBytes[2]) {
+            	String sessionID = rootElt.elementText("SessionID");
+            	//byte []contentBytes = StringUtil.strToByteArray(content);
+            	byte []contentBytes = new BASE64Decoder().decodeBuffer(content);
+            	JavaLog.log4j.info("content is " + StringUtil.bytesToHexStr(contentBytes));
+            	switch (contentBytes[1]) {
             	case DEVICE_MSG_COMMAND_TEMPERATURE:
-            		int temp = (contentBytes[4] & 0xff) | ((contentBytes[5] & 0xff) << 8);
+            		int temp = (contentBytes[3] & 0xff) | ((contentBytes[4] & 0xff) << 8);
+            		JavaLog.log4j.info("Temp is " + temp);
             		//float temperature = temp / 10;
             		// 存储在数据库中，再显示在WeChat中
             		Temperature temperature = new Temperature();
@@ -179,10 +199,15 @@ public class WXServlet extends HttpServlet {
             		Calendar c = Calendar.getInstance();
             		StringBuilder sb = new StringBuilder();
             		sb.append(c.get(Calendar.YEAR));
-            		sb.append(c.get(Calendar.MONTH));
+            		sb.append('-');
+            		sb.append(c.get(Calendar.MONTH) + 1);
+            		sb.append('-');
             		sb.append(c.get(Calendar.DAY_OF_MONTH));
+            		sb.append('-');
             		sb.append(c.get(Calendar.HOUR_OF_DAY));
+            		sb.append(':');
             		sb.append(c.get(Calendar.MINUTE));
+            		sb.append(':');
             		sb.append(c.get(Calendar.SECOND));
             		temperature.setTime(sb.toString());
             		temperature.setTemperature(temp);
@@ -193,28 +218,33 @@ public class WXServlet extends HttpServlet {
             		bindingInfo.setDeviceID(deviceID);
             		bindingInfo.setOpenID(openID);
             		BindingInfo bindingInfoDB = ThermometerDB.findBindingInfo(bindingInfo);
+            		JavaLog.log4j.info("bindingInfoDB.getDisplayOnWeChat " + bindingInfoDB.getDisplayOnWeChat());
+            		
+            		String responseStr = "<xml>";
+                    responseStr += "<ToUserName><![CDATA[" + fromUserName
+                            + "]]></ToUserName>";
+                    responseStr += "<FromUserName><![CDATA[" + toUserName
+                            + "]]></FromUserName>";
+                    responseStr += "<CreateTime>" + System.currentTimeMillis()
+                            + "</CreateTime>";
+                    responseStr += "<MsgType><![CDATA[device_text]]></MsgType>";
+                    responseStr += "<DeviceType><![CDATA[" +deviceType + "]]></DeviceType>";
+                    responseStr += "<DeviceID><![CDATA[" + deviceID + "]]></DeviceID>";
+                    responseStr += "<SessionID><![CDATA[" + sessionID + "]]></SessionID>";
+                    responseStr += "<Content>" + new String(new BASE64Encoder().encode(new byte []{(byte) temp}) ) + "</Content>";
+                    responseStr += "</xml>";
+                    JavaLog.log4j.info("responseStr " + responseStr);
+                    response.getWriter().write(responseStr);
             		if (bindingInfoDB.getDisplayOnWeChat().equals("1")) {
-	            		/*ToDeviceMsg msg = new ToDeviceMsg();
-	            		msg.setContent(temp / 10.0 + "");
-	            		msg.setDeviceId(deviceID);
-	            		msg.setDeviceType(deviceType);
-	            		msg.setOpenId(openID);
-	            		msg.sendMessage();*/
-            			String responseStr = "<xml>";
-                        responseStr += "<ToUserName><![CDATA[" + fromUserName
-                                + "]]></ToUserName>";
-                        responseStr += "<FromUserName><![CDATA[" + toUserName
-                                + "]]></FromUserName>";
-                        responseStr += "<CreateTime>" + System.currentTimeMillis()
-                                + "</CreateTime>";
-                        responseStr += "<MsgType><![CDATA[text]]></MsgType>";
-                        responseStr += "<Content>" + temp /10.0 + "℃" + "</Content>";
-                        responseStr += "<FuncFlag>0</FuncFlag>";
-                        responseStr += "</xml>";
-                        response.getWriter().write(responseStr);
+            			
+                        ToWeChatMsg msg = new ToWeChatMsg();
+                        msg.openId = openID;
+                        msg.content = temp / 10 + "." + temp % 10 + "";
+                        msg.sendMessage();
+                        
             		}
             		break;
-            	case DEVICE_MSG_COMMAND_RESULT:
+            	/*case DEVICE_MSG_COMMAND_RESULT:
             		int result = contentBytes[4] & 0xff;
             		if (result == 0x00) {
             			// 成功,更新,通知网页
@@ -222,7 +252,7 @@ public class WXServlet extends HttpServlet {
             			device.setDeviceID(deviceID);
             			ThermometerDB.updateDevice(device);
             		}
-            		break;
+            		break;*/
             	}
             } else if ("event".equals(MsgType)) {
             	// 自定义菜单
@@ -233,10 +263,13 @@ public class WXServlet extends HttpServlet {
             			// fromUserName就是openID，改变shouldDisplayOnWeChat中对应openID的值，再写回数据库中
             			BindingInfo bindingInfo = new BindingInfo();
             			bindingInfo.setOpenID(fromUserName);
+            			BindingInfo temp = ThermometerDB.findBindingInfo(bindingInfo);
+            			bindingInfo.setDisplayOnWeChat(temp.getDisplayOnWeChat().equals("1") ? "0" : "1");
             			boolean success = ThermometerDB.updateBindingInfoWithOpenID(bindingInfo);
             			String responseContent = "";
             			if (success) {
-            				responseContent = "Succeed.";
+            				responseContent = "Succeed.The temperature will " + 
+            					(temp.getDisplayOnWeChat().equals("1") ? "" : "NOT " + "show up on the WeChat");
             			} else {
             				responseContent = "Failed.";
             			}

@@ -3,18 +3,22 @@ package com.thermometer.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import javassist.bytecode.ByteArray;
+
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.sun.xml.internal.ws.util.ByteArrayBuffer;
 import com.thermometer.db.ThermometerDB;
 import com.thermometer.db.model.BindingInfo;
 import com.thermometer.db.model.Device;
 import com.thermometer.message.Oauth2GetAccessTokenMsg;
 import com.thermometer.message.ToDeviceMsg;
 import com.thermometer.message.model.Oauth2Response;
+import com.thermometer.utility.StringUtil;
 
 public class Oauth2IntervalServlet extends HttpServlet {
 
@@ -113,7 +117,13 @@ public class Oauth2IntervalServlet extends HttpServlet {
 		String openid = request.getParameter("openid");
 		
 		int interval = Integer.parseInt(intervalStr);
-		
+		byte []command = new byte[5];
+		command[0] = (byte) 0xfa;
+		command[1] = (byte) 0xf2;
+		command[2] = 0x02;
+		byte []internalBytes = StringUtil.int2LittleEndianBytes(interval, 2);
+		command[3] = internalBytes[0];
+		command[4] = internalBytes[1];
 		BindingInfo bindingInfo = new BindingInfo();
 		bindingInfo.setOpenID(openid);
 		BindingInfo info = ThermometerDB.findBindingInfo(bindingInfo);
@@ -128,8 +138,16 @@ public class Oauth2IntervalServlet extends HttpServlet {
 			msg.setOpenId(openid);
 			msg.setDeviceId(deviceId);
 			msg.setDeviceType(realDevice.getDeviceType());
-			msg.setContent(intervalStr);
-			msg.sendMessage();
+			msg.setContent(command);
+			if (msg.sendMessage()) {
+				realDevice.setDeviceMeasureInterval(interval);
+				ThermometerDB.updateDevice(realDevice);
+				RequestDispatcher rd = request.getRequestDispatcher("../webpage/success.jsp");
+				rd.forward(request, response);
+			} else {
+				RequestDispatcher rd = request.getRequestDispatcher("../webpage/fail.jsp");
+				rd.forward(request, response);
+			}
 		} else {
 			request.setAttribute("openid", openid);
 			RequestDispatcher rd = request.getRequestDispatcher("../webpage/getBindingInfoFailed.jsp");

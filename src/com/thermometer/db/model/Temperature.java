@@ -9,7 +9,7 @@ public class Temperature {
 	
 	public static final String TABLE = "temperature";
 	public static final String DEVICE_ID = "device_id";
-	public static final String OPEN_ID = "opem_id";
+	public static final String OPEN_ID = "open_id";
 	public static final String TIME = "time";
 	public static final String TEMPERATURE = "temp";
 	public String getDeviceID() {

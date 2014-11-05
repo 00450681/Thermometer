@@ -11,19 +11,24 @@ import com.thermometer.db.model.BindingInfo;
 import com.thermometer.db.model.Client;
 import com.thermometer.db.model.Device;
 import com.thermometer.db.model.Temperature;
+import com.thermometer.utility.JavaLog;
 
 
 public class ThermometerDB {
 	static private Statement connect() {
 		String driver ="com.mysql.jdbc.Driver";
 	    String url="jdbc:mysql://115.28.176.65:3306/thermometer";
+		//String url="jdbc:mysql://127.0.0.1:3306/thermometer";
 	    String user="root";
 	    String password="root";
 	    try{
 		    Class.forName(driver);
+		    JavaLog.log4j.info("Connecting to the database");
 		    Connection con=DriverManager.getConnection(url,user,password);
+		    JavaLog.log4j.info("Creating statement");
 	        return con.createStatement();
 	    }catch(Exception e){
+	    	JavaLog.log4j.info("无法加载驱动程序" +driver, e);
 	        System.out.println("无法加载驱动程序" +driver);
 	        return null;
 	    }
@@ -41,9 +46,9 @@ public class ThermometerDB {
 		try {
 			conn = statement.getConnection();
 			if (!conn.isClosed()) {
-				String sql = "insert into " + Device.TABLE + " values(" +
-						device.getDeviceID() + ", " + device.getDeviceType() +
-						", " +device.getDeviceMeasureInterval() + ");";
+				String sql = "insert into " + Device.TABLE + " values(\"" +
+						device.getDeviceID() + "\", \"" + device.getDeviceType() +
+						"\", \"" +device.getDeviceMeasureInterval() + "\");";
 				return statement.executeUpdate(sql) == 1 ? true : false;
 			}
 		} catch (SQLException e) {
@@ -70,16 +75,19 @@ public class ThermometerDB {
 		Statement statement = connect();
 		Connection conn = null;
 		if (statement == null) {
+			JavaLog.log4j.info("Statement is null");
 			return false;
 		}
 		try {
 			conn = statement.getConnection();
 			if (!conn.isClosed()) {
-				String sql = "insert into " + BindingInfo.TABLE + " values(" +
-						bindingInfo.getDeviceID() + ", " + bindingInfo.getOpenID() +
-						", " +bindingInfo.getDisplayOnWeChat() + ");";
+				String sql = "insert into " + BindingInfo.TABLE + " values(\"" +
+						bindingInfo.getDeviceID() + "\", \"" + bindingInfo.getOpenID() +
+						"\", \"" +bindingInfo.getDisplayOnWeChat() + "\");";
+				JavaLog.log4j.info("SQL is : " + sql);
 				return statement.executeUpdate(sql) == 1 ? true : false;
 			}
+			JavaLog.log4j.info("connection is closed");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -109,8 +117,8 @@ public class ThermometerDB {
 		try {
 			conn = statement.getConnection();
 			if (!conn.isClosed()) {
-				String sql = "insert into " + Client.TABLE + " values(" +
-						client.getOpenID() + ");";
+				String sql = "insert into " + Client.TABLE + " values(\"" +
+						client.getOpenID() + "\");";
 				return statement.executeUpdate(sql) == 1 ? true : false;
 			}
 		} catch (SQLException e) {
@@ -142,10 +150,10 @@ public class ThermometerDB {
 		try {
 			conn = statement.getConnection();
 			if (!conn.isClosed()) {
-				String sql = "insert into " + Temperature.TABLE + " values(" +
-						temperature.getDeviceID() + ", " + temperature.getOpenID() +
-						", " +temperature.getTime() + ", " + temperature.getTemperature() +
-						");";
+				String sql = "insert into " + Temperature.TABLE + " values(\"" +
+						temperature.getDeviceID() + "\", \"" + temperature.getOpenID() +
+						"\", \"" +temperature.getTime() + "\", \"" + temperature.getTemperature() +
+						"\");";
 				return statement.executeUpdate(sql) == 1 ? true : false;
 			}
 		} catch (SQLException e) {
@@ -177,10 +185,10 @@ public class ThermometerDB {
 			if (!conn.isClosed()) {
 				String sql = "select * from " + Device.TABLE + " where 1=1";
 				if (device.getDeviceID() != null && !device.getDeviceID().equals("")) {
-					sql += " and " + Device.DEVICE_ID + " = " + device.getDeviceID();
+					sql += " and " + Device.DEVICE_ID + " = \"" + device.getDeviceID() + "\"";
 				}
 				if (device.getDeviceType() != null && !device.getDeviceType().equals("")) {
-					sql += " and " + Device.DEVICE_TYPE + " = " + device.getDeviceType();
+					sql += " and " + Device.DEVICE_TYPE + " = \"" + device.getDeviceType() + "\"";
 				}
 				sql += " ;";
 				ResultSet rs = statement.executeQuery(sql);
@@ -225,11 +233,11 @@ public class ThermometerDB {
 			conn = statement.getConnection();
 			if (!conn.isClosed()) {
 				String sql = "select * from " + BindingInfo.TABLE + " where 1=1";
-				if (bindingInfo.getDeviceID() == null && !bindingInfo.getDeviceID().equals("")) {
-					sql += " and " + BindingInfo.DEVICE_ID + " = " + bindingInfo.getDeviceID();
+				if (bindingInfo.getDeviceID() != null && !bindingInfo.getDeviceID().equals("")) {
+					sql += " and " + BindingInfo.DEVICE_ID + " = \"" + bindingInfo.getDeviceID() + "\"";
 				}
 				if (bindingInfo.getOpenID() != null && !bindingInfo.getOpenID().equals("")) {
-					sql += " and " + BindingInfo.OPEN_ID + " = " + bindingInfo.getOpenID();
+					sql += " and " + BindingInfo.OPEN_ID + " = \"" + bindingInfo.getOpenID() + "\"";
 				}
 				sql += " ;";
 				ResultSet rs = statement.executeQuery(sql);
@@ -273,13 +281,13 @@ public class ThermometerDB {
 			if (!conn.isClosed()) {
 				String sql = "select * from " + Temperature.TABLE + " where 1=1";
 				if (temperature.getDeviceID() != null && !temperature.getDeviceID().equals("")) {
-					sql += " and " + Temperature.DEVICE_ID + " = " + temperature.getDeviceID();
+					sql += " and " + Temperature.DEVICE_ID + " = \"" + temperature.getDeviceID() + "\"";
 				}
 				if (temperature.getOpenID() != null && !temperature.getOpenID().equals("")) {
-					sql += " and " + Temperature.OPEN_ID + " = " + temperature.getOpenID();
+					sql += " and " + Temperature.OPEN_ID + " = \"" + temperature.getOpenID() + "\"";
 				}
 				if (temperature.getTime() != null && !temperature.getTime().equals("")) {
-					sql += " and " + Temperature.TIME + " = " + temperature.getTime();
+					sql += " and " + Temperature.TIME + " = \"" + temperature.getTime() + "\"";
 				}
 				sql += " ;";
 				ResultSet rs = statement.executeQuery(sql);
@@ -323,7 +331,7 @@ public class ThermometerDB {
 			if (!conn.isClosed()) {
 				String sql = "select * from " + Client.TABLE;
 				if (client.getOpenID() != null && !client.getOpenID().equals("")) {
-					sql += " where " + Client.OPEN_ID + " = " + client.getOpenID();
+					sql += " where " + Client.OPEN_ID + " = \"" + client.getOpenID() + "\"";
 				}
 				sql += " ;";
 				ResultSet rs = statement.executeQuery(sql);
@@ -369,7 +377,7 @@ public class ThermometerDB {
 				String sql = "update " + Device.TABLE + " set " +
 						Device.DEVICE_MEASURE_INTERVAL + " =  " +
 						device.getDeviceMeasureInterval() + " where " +
-						Device.DEVICE_ID + " = " + device.getDeviceID() +  ");";
+						Device.DEVICE_ID + " = \"" + device.getDeviceID() +  "\");";
 				return statement.executeUpdate(sql) == 1 ? true : false;
 			}
 		} catch (SQLException e) {
@@ -439,10 +447,10 @@ public class ThermometerDB {
 			conn = statement.getConnection();
 			if (!conn.isClosed()) {
 				String sql = "update " + BindingInfo.TABLE + " set " +
-						BindingInfo.DISPLAY_ON_WECHAT + " =  " +
-						bindingInfo.getDisplayOnWeChat() + " where " +
-						BindingInfo.OPEN_ID + " = " + bindingInfo.getOpenID()
-						+ " ;";
+						BindingInfo.DISPLAY_ON_WECHAT + " =  \"" +
+						bindingInfo.getDisplayOnWeChat() + "\" where " +
+						BindingInfo.OPEN_ID + " = \"" + bindingInfo.getOpenID()
+						+ "\" ;";
 				return statement.executeUpdate(sql) == 1 ? true : false;
 			}
 		} catch (SQLException e) {
@@ -508,14 +516,14 @@ public class ThermometerDB {
 			conn = statement.getConnection();
 			if (!conn.isClosed()) {
 				String sql = "update " + Temperature.TABLE + " set " +
-						Temperature.TIME + " =  " +
-						temperature.getTime() + " , " +
+						Temperature.TIME + " =  \"" +
+						temperature.getTime() + "\" , " +
 						Temperature.TEMPERATURE + " = " + 
 						temperature.getTemperature() + " where " +
-						Temperature.DEVICE_ID + " =  " +
-						temperature.getDeviceID() + " and " +
-						Temperature.OPEN_ID + " = " + 
-						temperature.getOpenID() + " ;";
+						Temperature.DEVICE_ID + " =  \"" +
+						temperature.getDeviceID() + "\" and " +
+						Temperature.OPEN_ID + " = \"" + 
+						temperature.getOpenID() + "\" ;";
 				return statement.executeUpdate(sql) == 1 ? true : false;
 			}
 		} catch (SQLException e) {
@@ -548,8 +556,43 @@ public class ThermometerDB {
 			conn = statement.getConnection();
 			if (!conn.isClosed()) {
 				String sql = "delete from " + BindingInfo.TABLE + " where " +
-						BindingInfo.OPEN_ID + " = " + bindingInfo.getOpenID()
-						+ " ;";
+						BindingInfo.OPEN_ID + " = \"" + bindingInfo.getOpenID()
+						+ "\" ;";
+				return statement.executeUpdate(sql) == 1 ? true : false;
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		} finally {
+			try {
+				statement.close();
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+		return false;
+		
+	}
+	
+	static public boolean deleteDevice(Device device) {
+		if (device == null) {
+			return false;
+		}
+		Statement statement = connect();
+		Connection conn = null;
+		if (statement == null) {
+			return false;
+		}
+		try {
+			conn = statement.getConnection();
+			if (!conn.isClosed()) {
+				String sql = "delete from " + Device.TABLE + " where " +
+						Device.DEVICE_ID + " = \"" + device.getDeviceID()
+						+ "\" ;";
 				return statement.executeUpdate(sql) == 1 ? true : false;
 			}
 		} catch (SQLException e) {

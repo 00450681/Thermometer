@@ -2,8 +2,10 @@ package com.thermometer.utility;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
@@ -16,6 +18,13 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
+import org.json.JSONException;
+import org.json.JSONObject;
  
 
 
@@ -162,5 +171,26 @@ public class HttpUtil {
 
 		return result;
 	}
-	
+
+	static public String getAccessToken() {
+		String url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=wx4c80d3e38ff364d9&secret=0d3f85782bc21f70c38c2c74e4b66d00";
+		
+
+        Document doc;
+		try {
+			String response = new String(sendHttpsGET(url).getBytes(), "UTF-8");
+			JSONObject jsonObj = new JSONObject(response);
+			return jsonObj.getString("access_token");
+			/*JSONObject accessObj = jsonObj.getJSONObject("access_token");
+	        return rootElt.elementText("access_token");*/
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        return "";
+		
+	}
 }
